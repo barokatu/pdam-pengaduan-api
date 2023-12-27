@@ -1,0 +1,332 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model diameters {
+  id              Int         @id @default(autoincrement())
+  nama            String      @db.VarChar(100)
+  by_pemeliharaan Int
+  by_administrasi Int
+  created_at      DateTime?   @db.Timestamp(0)
+  updated_at      DateTime?   @db.Timestamp(0)
+  aktif           Boolean?    @default(true)
+  pelanggan       pelanggan[]
+}
+
+model divisi {
+  id         Int         @id @default(autoincrement())
+  nama       String      @db.VarChar(255)
+  is_active  Boolean?    @default(true)
+  deleted_at DateTime?   @db.DateTime(0)
+  penugasan  penugasan[]
+  petugas    petugas[]
+}
+
+model golongan {
+  id            Int         @id @default(autoincrement())
+  kode_golongan String      @db.VarChar(10)
+  nama          String      @db.VarChar(50)
+  created_at    DateTime?   @db.Timestamp(0)
+  updated_at    DateTime?   @db.Timestamp(0)
+  kode_akun     String?     @db.VarChar(20)
+  administrasi  Int?        @default(0)
+  pemeliharaan  Int?        @default(0)
+  retribusi     Int?        @default(0)
+  pelayanan     Int?        @default(0)
+  denda1        Int?        @default(0)
+  persendenda1  Int?        @default(0) @db.SmallInt
+  denda2        Int?        @default(0)
+  denda3        Int?        @default(0)
+  minpakai      Int?        @default(0) @db.SmallInt
+  idsktarif     Int?        @default(0) @db.TinyInt
+  aktif         Int?        @default(1) @db.TinyInt
+  sktarif       sktarif?    @relation(fields: [idsktarif], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "golongan_ibfk_1")
+  pelanggan     pelanggan[]
+  tarif         tarif[]
+
+  @@unique([kode_golongan, idsktarif], map: "golongan_kode_golongan_unique")
+  @@index([idsktarif], map: "idsktarif")
+}
+
+model jalan {
+  id         Int         @id @default(autoincrement())
+  nama       String      @db.VarChar(255)
+  created_at DateTime?   @db.Timestamp(0)
+  updated_at DateTime?   @db.Timestamp(0)
+  aktif      Boolean?    @default(true)
+  pelanggan  pelanggan[]
+}
+
+model jenis_aduan {
+  id         Int         @id @default(autoincrement())
+  nama       String      @db.VarChar(255)
+  is_active  Boolean?    @default(true)
+  created_at DateTime?   @default(now()) @db.DateTime(0)
+  updated_at DateTime?   @default(now()) @db.DateTime(0)
+  pengaduan  pengaduan[]
+}
+
+model kecamatan {
+  id        Int         @id
+  nama      String      @default("") @db.VarChar(100)
+  pelanggan pelanggan[]
+}
+
+model kelurahan {
+  id        Int         @id
+  kec_id    Int?
+  nama      String      @default("") @db.VarChar(100)
+  pelanggan pelanggan[]
+}
+
+model loket {
+  id         Int          @id @default(autoincrement())
+  kodeloket  String       @default("-") @db.VarChar(50)
+  loket      String?      @default("-") @db.VarChar(50)
+  aktif      Boolean?     @default(true)
+  user_loket user_loket[]
+
+  @@index([id], map: "id")
+}
+
+model materai {
+  id         Int       @id
+  min        Int
+  max        Int
+  by_materai Int
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model merek_meters {
+  id         Int         @id @default(autoincrement())
+  nama       String      @db.VarChar(100)
+  created_at DateTime?   @db.Timestamp(0)
+  updated_at DateTime?   @db.Timestamp(0)
+  pelanggan  pelanggan[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model pelanggan {
+  id              Int           @id
+  status          Int           @db.TinyInt
+  no_pelanggan    String        @unique(map: "pelanggan_no_pelanggan_unique") @db.VarChar(50)
+  no_lama         String?       @db.VarChar(50)
+  no_kartu        String?       @unique(map: "pelanggan_no_kartu_unique") @db.VarChar(100)
+  nama            String        @db.VarChar(100)
+  alamat          String        @db.VarChar(255)
+  tmp_lahir       String?       @db.VarChar(100)
+  tgl_lahir       DateTime?     @db.Date
+  no_ktp          String?       @db.VarChar(50)
+  no_kk           String?       @db.VarChar(50)
+  no_telp         String?       @db.VarChar(15)
+  no_hp           String?       @db.VarChar(15)
+  email           String?       @db.VarChar(100)
+  pekerjaan       String?       @db.VarChar(100)
+  jumlah_penghuni Int?
+  jenis_bangunan  String?       @db.VarChar(100)
+  kepemilikan     String?       @db.VarChar(100)
+  nama_pemilik    String?       @db.VarChar(100)
+  merek_id        Int?
+  no_meter        String        @db.VarChar(20)
+  golongan_id     Int
+  wilayah_id      Int
+  rayon_id        Int
+  jalan_id        Int
+  diameter_id     Int
+  kec_id          Int           @default(1)
+  kel_id          Int           @default(1)
+  latitude        String?       @db.VarChar(35)
+  longitude       String?       @db.VarChar(35)
+  tgl_pasif       DateTime?     @db.Date
+  tgl_pasang      DateTime?     @db.Date
+  tgl_aktif       DateTime?     @db.Date
+  mbr             Boolean
+  urutanbaca      Int?          @default(0)
+  created_at      DateTime?     @db.Timestamp(0)
+  updated_at      DateTime?     @db.Timestamp(0)
+  rayon           rayon         @relation(fields: [rayon_id], references: [id], map: "pelanggan_ibfk_1")
+  jalan           jalan         @relation(fields: [jalan_id], references: [id], map: "pelanggan_ibfk_2")
+  wilayah         wilayah       @relation(fields: [wilayah_id], references: [id], map: "pelanggan_ibfk_3")
+  golongan        golongan      @relation(fields: [golongan_id], references: [id], map: "pelanggan_ibfk_4")
+  diameters       diameters     @relation(fields: [diameter_id], references: [id], map: "pelanggan_ibfk_5")
+  kecamatan       kecamatan     @relation(fields: [kec_id], references: [id], map: "pelanggan_ibfk_6")
+  kelurahan       kelurahan     @relation(fields: [kel_id], references: [id], map: "pelanggan_ibfk_7")
+  merek_meters    merek_meters? @relation(fields: [merek_id], references: [id], onDelete: Restrict, map: "pelanggan_ibfk_8")
+  pengaduan       pengaduan[]
+
+  @@index([kec_id], map: "kec_id")
+  @@index([kel_id], map: "kel_id")
+  @@index([merek_id], map: "merek_id")
+  @@index([diameter_id], map: "pelanggan_diameter_id_foreign")
+  @@index([golongan_id], map: "pelanggan_golongan_id_foreign")
+  @@index([jalan_id], map: "pelanggan_jalan_id_foreign")
+  @@index([rayon_id], map: "pelanggan_rayon_id_foreign")
+  @@index([wilayah_id], map: "pelanggan_unit_id_foreign")
+}
+
+model pengaduan {
+  id                  Int                   @id @default(autoincrement())
+  nomor               String                @db.VarChar(255)
+  is_pelanggan        Boolean?              @default(false)
+  pelanggan_id        Int?
+  jenis_aduan_id      Int?
+  nama                String                @db.VarChar(255)
+  no_identitas        String                @db.VarChar(255)
+  no_telp             String                @db.VarChar(20)
+  alamat              String?               @db.Text
+  is_processed        Boolean?              @default(false)
+  processed_at        DateTime?             @db.DateTime(0)
+  is_complete         Boolean?              @default(false)
+  completed_at        DateTime?             @db.DateTime(0)
+  created_at          DateTime?             @default(now()) @db.DateTime(0)
+  updated_at          DateTime?             @default(now()) @db.DateTime(0)
+  keterangan          String?               @db.Text
+  tgl_target          DateTime?             @db.Date
+  penyelesaian        String?               @db.Text
+  ket_selesai         String?               @db.Text
+  foto_penyelesaian   String?               @db.VarChar(255)
+  petugas_id          Int?
+  jenis_aduan         jenis_aduan?          @relation(fields: [jenis_aduan_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_1")
+  petugas             petugas?              @relation(fields: [petugas_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_2")
+  pelanggan           pelanggan?            @relation(fields: [pelanggan_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_3")
+  penugasan_pengaduan penugasan_pengaduan[]
+
+  @@index([jenis_aduan_id], map: "jenis_aduan_id")
+  @@index([pelanggan_id], map: "pelanggan_id")
+  @@index([petugas_id], map: "petugas_id")
+}
+
+model penugasan {
+  id                  Int                   @id @default(autoincrement())
+  divisi_id           Int
+  created_at          DateTime?             @default(now()) @db.DateTime(0)
+  updated_at          DateTime?             @default(now()) @db.DateTime(0)
+  deleted_at          DateTime?             @db.DateTime(0)
+  divisi              divisi                @relation(fields: [divisi_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "penugasan_ibfk_1")
+  penugasan_pengaduan penugasan_pengaduan[]
+
+  @@index([divisi_id], map: "divisi_id")
+}
+
+model penugasan_pengaduan {
+  id           Int       @id @default(autoincrement())
+  pengaduan_id Int
+  penugasan_id Int
+  created_at   DateTime? @default(now()) @db.DateTime(0)
+  updated_at   DateTime? @default(now()) @db.DateTime(0)
+  pengaduan    pengaduan @relation(fields: [pengaduan_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "penugasan_pengaduan_ibfk_1")
+  penugasan    penugasan @relation(fields: [penugasan_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "penugasan_pengaduan_ibfk_2")
+
+  @@index([pengaduan_id], map: "pengaduan_id")
+  @@index([penugasan_id], map: "penugasan_id")
+}
+
+model petugas {
+  id         Int         @id @default(autoincrement())
+  nama       String      @db.VarChar(255)
+  no_telp    String?     @db.VarChar(20)
+  divisi_id  Int
+  username   String      @unique(map: "username") @db.VarChar(255)
+  password   String      @db.VarChar(255)
+  is_active  Boolean?    @default(true)
+  deleted_at DateTime?   @db.DateTime(0)
+  pengaduan  pengaduan[]
+  divisi     divisi      @relation(fields: [divisi_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "petugas_ibfk_1")
+
+  @@index([divisi_id], map: "divisi_id")
+}
+
+model rayon {
+  id        Int         @id
+  koderayon String      @default("") @db.VarChar(20)
+  nama      String      @default("") @db.VarChar(100)
+  wilayah   String?     @db.VarChar(50)
+  aktif     Boolean     @default(true)
+  pelanggan pelanggan[]
+
+  @@index([koderayon], map: "koderayon_FK")
+}
+
+model setting {
+  id                Int     @id
+  lokalpathftp      String? @db.VarChar(256)
+  lokalfolderfoto   String? @db.VarChar(256)
+  remotefolderfoto  String? @db.VarChar(256)
+  virtualdirfoto    String? @db.VarChar(256)
+  alamatwebinfo     String? @db.VarChar(256)
+  flagstaticmap     String? @db.VarChar(1)
+  folderbackup      String? @db.VarChar(256)
+  bolehbc2step      Int?    @default(1) @db.SmallInt
+  bolehbcbarcode    Int?    @default(1) @db.SmallInt
+  bolehbclastdigit  Int?    @default(1) @db.SmallInt
+  bolehbcdatabase   Int?    @default(1) @db.SmallInt
+  strictbcbylatlong Int?    @default(0) @db.SmallInt
+  strictbcgps       Int?    @default(0) @db.SmallInt
+}
+
+model sktarif {
+  id         Int        @id @default(autoincrement()) @db.TinyInt
+  tahun      Int
+  nomor_sk   String     @db.VarChar(50)
+  aktif      Boolean    @default(true)
+  created_at DateTime?  @db.Timestamp(0)
+  updated_at DateTime?  @db.Timestamp(0)
+  golongan   golongan[]
+}
+
+model tarif {
+  id          Int       @id @default(autoincrement())
+  golongan_id Int
+  min         Int
+  max         Int
+  harga       Int
+  created_at  DateTime? @db.Timestamp(0)
+  updated_at  DateTime? @db.Timestamp(0)
+  istetap     Int?      @default(0) @db.SmallInt
+  golongan    golongan  @relation(fields: [golongan_id], references: [id], onUpdate: Restrict, map: "tarif_ibfk_1")
+
+  @@index([golongan_id], map: "tarif_details_golongan_id_foreign")
+}
+
+model user_loket {
+  id       Int     @id @default(autoincrement())
+  user_id  Int
+  loket_id Int
+  aktif    Boolean
+  users    users   @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_loket_ibfk_1")
+  loket    loket   @relation(fields: [loket_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "user_loket_ibfk_2")
+
+  @@index([user_id], map: "user_id")
+  @@index([loket_id], map: "user_loket_ibfk_2")
+}
+
+model users {
+  id                   Int          @id @default(autoincrement())
+  username             String       @db.Char(50)
+  password             String       @db.Char(100)
+  nama                 String       @db.Char(50)
+  jabatan              String       @db.Char(50)
+  role                 String       @db.Char(50)
+  is_akses_bacameter   Boolean
+  is_user_ppob         Boolean
+  list_authorized_page Json
+  ppob_token           String?      @db.Char(50)
+  api_version          String?      @db.Char(1)
+  is_active            Boolean
+  deleted_at           DateTime?    @db.Date
+  user_loket           user_loket[]
+}
+
+model wilayah {
+  id         Int         @id @default(autoincrement())
+  nama       String      @db.VarChar(255)
+  created_at DateTime?   @db.Timestamp(0)
+  updated_at DateTime?   @db.Timestamp(0)
+  pelanggan  pelanggan[]
+}
