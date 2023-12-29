@@ -11,6 +11,8 @@ export async function GET(request: Request) {
       prisma.penugasan_pengaduan.count(),
       prisma.pengaduan.count({ where: { is_complete: true } }),
       prisma.pengaduan.count({ where: { is_complete: false } }),
+      prisma.pengaduan.count({ where: { is_processed: true } }),
+      prisma.pengaduan.count({ where: { is_processed: false } }),
     ]) as any;
 
     const homeDataObject = {
@@ -18,7 +20,9 @@ export async function GET(request: Request) {
         jumlahPenugasan: homeData[1],
         jumlahPenugasanPengaduan: homeData[2],
         jumlahPengaduanSelesai: homeData[3],
-        jumlahPengaduanBelumSelesai: homeData[4]
+        jumlahPengaduanBelumSelesai: homeData[4],
+        jumlahPengaduanDitugaskan: homeData[5],
+        jumlahPengaduanBelumDitugaskan: homeData[6]
     }
     
     console.log("home data", homeDataObject)

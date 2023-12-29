@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const reqBody = await request.json();
 
     // Extract relevant data from request body
-    const { pengaduanIds, divisiId } = reqBody;
+    const { pengaduanIds, divisiId, tglTarget } = reqBody;
 
     // Ensure pengaduanIds is an array
     if (!Array.isArray(pengaduanIds)) {
@@ -46,18 +46,23 @@ export async function POST(request: Request) {
 
     // Mark pengaduan as processed
     await prisma.pengaduan.updateMany({
-      where: {
-        id: {
-          in: pengaduanIds,
+        where: {
+          id: {
+            in: pengaduanIds,
+          },
         },
-      },
-      data: { is_processed: true },
-    });
+        data: {
+          is_processed: true,
+          processed_at: new Date(), // Set processed_at to current date/time
+          updated_at: new Date(), // Update updated_at timestamp
+          tgl_target: tglTarget
+        },
+    });  
 
     return NextResponse.json({ message: 'Success create penugasan', data: newPenugasan }, { status: 201 });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: 'Failed to create penugasan' }, { status: 500 });
+    return NextResponse.json({ message: 'Gagal membuat penugasan, mungkin ada aduan yang sudah di tugaskan' }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }
