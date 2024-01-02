@@ -71,3 +71,35 @@ export async function POST(request: Request) {
     await prisma.$disconnect();
   }
 }
+
+export async function GET(request: Request) {
+  const prisma = new PrismaClient();
+
+  try {
+    const completedPengaduan = await prisma.pengaduan.findMany({
+      where: {
+        is_complete: true,
+      },
+      select: {
+        nomor: true,
+        jenis_aduan: true,
+        alamat: true,
+        completed_at: true,
+        petugas_id: true,
+        foto_penyelesaian: true,
+        petugas: {
+          select: {
+            nama: true,
+          },
+        },
+      },
+    });
+
+    return NextResponse.json({ data: completedPengaduan });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: 'Failed to fetch pengaduan data' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
+}
