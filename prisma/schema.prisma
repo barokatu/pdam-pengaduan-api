@@ -171,35 +171,41 @@ model pelanggan {
 }
 
 model pengaduan {
-  id                  Int                   @id @default(autoincrement())
-  nomor               String                @db.VarChar(255)
-  is_pelanggan        Boolean?              @default(false)
-  pelanggan_id        Int?
-  jenis_aduan_id      Int?
-  nama                String                @db.VarChar(255)
-  no_identitas        String                @db.VarChar(255)
-  no_telp             String                @db.VarChar(20)
-  alamat              String?               @db.Text
-  is_processed        Boolean?              @default(false)
-  processed_at        DateTime?             @db.DateTime(0)
-  is_complete         Boolean?              @default(false)
-  completed_at        DateTime?             @db.DateTime(0)
-  created_at          DateTime?             @default(now()) @db.DateTime(0)
-  updated_at          DateTime?             @default(now()) @db.DateTime(0)
-  keterangan          String?               @db.Text
-  tgl_target          DateTime?             @db.Date
-  penyelesaian        String?               @db.Text
-  ket_selesai         String?               @db.Text
-  foto_penyelesaian   String?               @db.VarChar(255)
-  petugas_id          Int?
-  jenis_aduan         jenis_aduan?          @relation(fields: [jenis_aduan_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_1")
-  petugas             petugas?              @relation(fields: [petugas_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_2")
-  pelanggan           pelanggan?            @relation(fields: [pelanggan_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_3")
-  penugasan_pengaduan penugasan_pengaduan[]
+  id                                      Int                   @id @default(autoincrement())
+  nomor                                   String                @db.VarChar(255)
+  is_pelanggan                            Boolean?              @default(false)
+  pelanggan_id                            Int?
+  jenis_aduan_id                          Int?
+  nama                                    String                @db.VarChar(255)
+  no_identitas                            String                @db.VarChar(255)
+  no_telp                                 String                @db.VarChar(20)
+  alamat                                  String?               @db.Text
+  is_processed                            Boolean?              @default(false)
+  processed_at                            DateTime?             @db.DateTime(0)
+  processed_by                            Int?
+  is_complete                             Boolean?              @default(false)
+  completed_at                            DateTime?             @db.DateTime(0)
+  created_at                              DateTime?             @default(now()) @db.DateTime(0)
+  updated_at                              DateTime?             @default(now()) @db.DateTime(0)
+  keterangan                              String?               @db.Text
+  tgl_target                              DateTime?             @db.Date
+  penyelesaian                            String?               @db.Text
+  ket_selesai                             String?               @db.Text
+  jenis_penyelesaian_id                   Int?
+  foto_penyelesaian                       String?               @db.Text
+  petugas_id                              Int?
+  jenis_aduan                             jenis_aduan?          @relation(fields: [jenis_aduan_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_1")
+  petugas                                 petugas?              @relation(fields: [petugas_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_2")
+  pelanggan                               pelanggan?            @relation(fields: [pelanggan_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_3")
+  petugas_pengaduan_processed_byTopetugas petugas?              @relation("pengaduan_processed_byTopetugas", fields: [processed_by], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_4")
+  jenis_penyelesaian                      jenis_penyelesaian?   @relation(fields: [jenis_penyelesaian_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pengaduan_ibfk_5")
+  penugasan_pengaduan                     penugasan_pengaduan[]
 
   @@index([jenis_aduan_id], map: "jenis_aduan_id")
   @@index([pelanggan_id], map: "pelanggan_id")
   @@index([petugas_id], map: "petugas_id")
+  @@index([processed_by], map: "processed_by")
+  @@index([jenis_penyelesaian_id], map: "jenis_penyelesaian_id")
 }
 
 model penugasan {
@@ -228,16 +234,18 @@ model penugasan_pengaduan {
 }
 
 model petugas {
-  id         Int         @id @default(autoincrement())
-  nama       String      @db.VarChar(255)
-  no_telp    String?     @db.VarChar(20)
-  divisi_id  Int
-  username   String      @unique(map: "username") @db.VarChar(255)
-  password   String      @db.VarChar(255)
-  is_active  Boolean?    @default(true)
-  deleted_at DateTime?   @db.DateTime(0)
-  pengaduan  pengaduan[]
-  divisi     divisi      @relation(fields: [divisi_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "petugas_ibfk_1")
+  id                                        Int         @id @default(autoincrement())
+  nama                                      String      @db.VarChar(255)
+  role                                      String?     @db.VarChar(50)
+  no_telp                                   String?     @db.VarChar(20)
+  divisi_id                                 Int
+  username                                  String      @unique(map: "username") @db.VarChar(255)
+  password                                  String      @db.VarChar(255)
+  is_active                                 Boolean?    @default(true)
+  deleted_at                                DateTime?   @db.DateTime(0)
+  pengaduan                                 pengaduan[]
+  pengaduan_pengaduan_processed_byTopetugas pengaduan[] @relation("pengaduan_processed_byTopetugas")
+  divisi                                    divisi      @relation(fields: [divisi_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "petugas_ibfk_1")
 
   @@index([divisi_id], map: "divisi_id")
 }
@@ -329,4 +337,13 @@ model wilayah {
   created_at DateTime?   @db.Timestamp(0)
   updated_at DateTime?   @db.Timestamp(0)
   pelanggan  pelanggan[]
+}
+
+model jenis_penyelesaian {
+  id                Int         @id @default(autoincrement())
+  nama_penyelesaian String      @db.VarChar(255)
+  created_at        DateTime?   @default(now()) @db.DateTime(0)
+  updated_at        DateTime?   @default(now()) @db.DateTime(0)
+  is_active         Boolean?    @default(true)
+  pengaduan         pengaduan[]
 }

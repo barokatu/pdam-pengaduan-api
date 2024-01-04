@@ -4,6 +4,7 @@ import { initializeApp } from 'firebase/app';
 import { getStorage, ref, uploadBytesResumable, getDownloadURL, uploadBytes } from 'firebase/storage';
 import { firebaseConfig } from '@/config/firebase';
 import { isIsoDate } from '@/utils/datevalidation';
+import { resultCode } from '@/utils/rescode';
 
 const app = initializeApp(firebaseConfig);
 
@@ -48,11 +49,57 @@ export async function POST(request: Request) {
       },
     });
 
-    return NextResponse.json({ message: 'Success update petugas pengaduan', data: updatedPengaduan }, { status: 200 });
+    return NextResponse.json({ message: 'Success update penugasan pengaduan', data: updatedPengaduan }, { status: 200 });
   } catch (error) {
     console.error(error);
-    return NextResponse.json({ message: 'Failed to update petugas pengaduan pengaduan' }, { status: 500 });
+    return NextResponse.json({ message: 'Failed to update penugasan pengaduan' }, { status: 500 });
   } finally {
     await prisma.$disconnect();
+  }
+}
+
+
+export async function GET(request: Request) {
+  const prisma = new PrismaClient();
+
+  try {
+    
+    const urlSearchParams = new URLSearchParams(request.url);
+    const month = urlSearchParams.get('month');
+    console.log("month:", month)
+    const year = urlSearchParams.get('year');
+    console.log("year:", year)
+    const petugasId = urlSearchParams.get('petugasId');
+
+    if(month === null || year === null) {
+      return NextResponse.json({...resultCode(212)}, {status: 200})
+    }
+
+    if(petugasId === null) {
+      return NextResponse.json({...resultCode(213)})
+    }
+
+    const startDate = new Date(parseInt(year), parseInt(month) - 1, 1);
+    const endDate = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0);
+
+    const allPengaduanByPetugas = await prisma.pengaduan.findMany({
+      include: {
+        jenis_aduan: true,
+        petugas: true,
+      },
+      where: {
+        created_at: {
+          gte: startDate,
+          lte: endDate,
+        },
+        petugas_id: parseInt(petugasId)
+      },
+    });
+
+    return NextResponse.json({...resultCode(200, "pengaduan by petugas"), data: allPengaduanByPetugas}, {status:200})
+
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: 'Failed to get penugasan pengaduan'})
   }
 }

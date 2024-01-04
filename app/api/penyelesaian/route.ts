@@ -18,6 +18,8 @@ export async function POST(request: Request) {
     const pengaduanId = formData.get("pengaduanId")
     const petugasId = formData.get("petugasId")
     const fotoPenyelesaian = formData.get("fotoPenyelesaian")
+    const keteranganSelesain = formData.get("keteranganSelesain")
+    const jenisPenyelesaianId = formData.get("jenisPenyelesaianId")
 
     const pengaduanData = await prisma.pengaduan.findUnique({
         where: {
@@ -58,6 +60,8 @@ export async function POST(request: Request) {
         foto_penyelesaian: photoUrl,
         is_complete: true,
         completed_at: new Date(),
+        ket_selesai: keteranganSelesain,
+        jenis_penyelesaian_id: jenisPenyelesaianId,
         updated_at: new Date(),
         petugas_id: parseInt(petugasId)
       },

@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { NextResponse } from 'next/server';
+import { resultCode } from '@/utils/rescode'
 
 export async function POST(request: Request) {
   const prisma = new PrismaClient();
@@ -8,7 +9,7 @@ export async function POST(request: Request) {
     const reqBody = await request.json();
 
     // Extract relevant data from request body
-    const { pengaduanIds, divisiId, tglTarget } = reqBody;
+    const { pengaduanIds, divisiId, ditugaskanOleh } = reqBody;
 
     // Ensure pengaduanIds is an array
     if (!Array.isArray(pengaduanIds)) {
@@ -26,7 +27,7 @@ export async function POST(request: Request) {
     });
 
     if (unprocessedPengaduan.length !== pengaduanIds.length) {
-      throw new Error('Some pengaduan are already processed');
+      return NextResponse.json({...resultCode(211)}, {status: 200})
     }
 
     // Create penugasan
@@ -53,9 +54,9 @@ export async function POST(request: Request) {
         },
         data: {
           is_processed: true,
+          processed_by: ditugaskanOleh,
           processed_at: new Date(), // Set processed_at to current date/time
           updated_at: new Date(), // Update updated_at timestamp
-          tgl_target: tglTarget
         },
     });  
 
